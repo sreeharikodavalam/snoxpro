@@ -1,0 +1,97 @@
+{% extends 'includes/base.html' %}
+
+{% block title %}Snox | Dashboard{% endblock %}
+
+{% block content %}
+
+    <div class="groups-grid">
+
+        <div class="dashboard-container">
+            <h2 class="title is-3">{{ gallery.event.title }}</h2>
+            <h1 class="subtitle is-4">Gallery | {{ gallery.name }}</h1>
+        </div>
+
+        <div class="section">
+
+
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
+            <form action="{% url 'upload_gallery_image_process' gallery_id=gallery.pk %}" class="dropzone" id="myDropzone"></form>
+            <script>
+                 Dropzone.options.myDropzone = {
+        maxFilesize: 5, // Maximum file size in MB
+        acceptedFiles: 'image/*',
+        init: function () {
+            var uploadedFilenames = [];
+
+            this.on("addedfile", function (file) {
+                if (file.type.match(/image.*/)) {
+                    var reader = new FileReader();
+                    reader.onload = function (event) {
+                        var img = new Image();
+                        img.src = event.target.result;
+
+                        img.onload = function () {
+                            // Check image resolution
+                            if (img.width > 1000 || img.height > 1000) {
+                                resizeImage(file, 1000, 1000);
+                            }
+                        };
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            this.on("thumbnail", function (file) {
+                // Check if the file with the same name already exists
+                if (uploadedFilenames.includes(file.name)) {
+                    this.removeFile(file);
+                    alert("File with the same name already uploaded. Please choose a different file.");
+                } else {
+                    // Add the filename to the list
+                    uploadedFilenames.push(file.name);
+                }
+            });
+        }
+    };
+
+                function resizeImage(file, maxWidth, maxHeight) {
+                    var canvas = document.createElement("canvas");
+                    var ctx = canvas.getContext("2d");
+
+                    var img = new Image();
+                    img.src = URL.createObjectURL(file);
+
+                    img.onload = function () {
+                        var width = img.width;
+                        var height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob(function (blob) {
+                            // Replace the original file with the resized one
+                            var newFile = new File([blob], file.name, {type: file.type, lastModified: Date.now()});
+                            file.previewElement.querySelector(".dz-image").src = URL.createObjectURL(newFile);
+                            file.upload = {resized: true};
+                            this.enqueueFile(newFile);
+                        }, file.type);
+                    };
+                }
+            </script>
+        </div>
+    </div>
+{% endblock %}
