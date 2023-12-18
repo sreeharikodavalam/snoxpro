@@ -22,7 +22,7 @@ def send_welcome_message(mobile_number, user_name, event_name):
                         "templateName": "event_registration_result",
                         "templateData": {
                             "body": {
-                                "placeholders": [user_name, event_name]
+                                "placeholders": [user_name.strip(), event_name.strip()]
                             },
                             "header": {
                                 "type": "IMAGE",

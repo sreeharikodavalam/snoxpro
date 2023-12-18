@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -118,11 +120,14 @@ def selfie_register(request, event_id=None):
 
         if form.is_valid():
             # Decode and save the base64-encoded image
-            selfie_image_data = request.POST.get('selfie', '')
+            selfie_image_data = request.POST.get('selfie')
             if selfie_image_data:
+                print("am here")
+                unique_filename = f"selfie_{timezone.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:6]}"
                 format, imgstr = selfie_image_data.split(';base64,')
                 ext = format.split('/')[-1]
-                data = ContentFile(base64.b64decode(imgstr), name=f'selfie.{ext}')
+                filename = f"{unique_filename}.{ext}"
+                data = ContentFile(base64.b64decode(imgstr), name=filename)
                 form.instance.selfie_image = data
 
                 # Get face embedding from the image
@@ -133,10 +138,10 @@ def selfie_register(request, event_id=None):
                     selfie_temp_data.selfie_embedding = ",".join(map(str, face_embedding))
                     selfie_temp_data.save()
                     selfie_registration = UserSelfieRegistration.objects.get(pk=pk)
-                    send_welcome_message(f'91{selfie_registration.mobile_number}', selfie_registration.user_name, event_name=str(event))
+                    send_welcome_message(f'91{selfie_registration.mobile_number}', selfie_registration.user_name, event_name=f'The Wedding of {str(event)}')
                     return render(request, 'events/selfie_register_result.html', {'event': event, 'selfie_registration': selfie_registration})
 
-        return JsonResponse({'error': 'Invalid form data'})
+        return JsonResponse({'error': 'Can find your face in image'})
     else:
         form = UserSelfieRegistrationForm()
         return render(request, 'events/selfie_register.html', {'event': event, 'form': form})
