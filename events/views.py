@@ -5,13 +5,14 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+
+from whatsapp.utils.send_welcome_message import send_welcome_message
 from .forms import EventForm, UserSelfieRegistrationForm
 from .models import Event, Gallery, GalleryImage, UserSelfieRegistration
 from .utils.gallery_upload_utils import do_upload_gallery_image
 from .utils.gallery_image_utils import detect_and_crop_faces, get_face_embedding
 import base64
 from django.core.files.base import ContentFile
-from whatsapp.utils.send_welcome_message import send_welcome_message
 
 
 @login_required

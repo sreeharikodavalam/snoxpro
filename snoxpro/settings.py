@@ -26,7 +26,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_celery_beat',
     'widget_tweaks',
     'app',
     'authentication',
@@ -139,12 +138,6 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'public/media'
-
-#
-#
-#
-#
-# snoxpro/settings.py
 
 # Celery configuration
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
