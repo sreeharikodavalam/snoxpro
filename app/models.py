@@ -1,3 +1,5 @@
 from django.db import models
 
-# Create your models here.
+
+class FaceDetectionJobs(models.Model):
+    updated_time = models.DateTimeField(null=True)

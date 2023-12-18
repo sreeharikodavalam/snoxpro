@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
@@ -8,8 +9,10 @@ from .utils.gallery_upload_utils import do_upload_gallery_image
 from .utils.gallery_image_utils import detect_and_crop_faces, get_face_embedding
 import base64
 from django.core.files.base import ContentFile
+from whatsapp.utils.send_welcome_message import send_welcome_message
 
 
+@login_required
 def create_event(request):
     if request.method == 'POST':
         form = EventForm(request.POST, request.FILES)
@@ -23,6 +26,7 @@ def create_event(request):
     return render(request, 'events/create_event.html', {'form': form})
 
 
+@login_required
 def edit_event(request, event_id=None):
     event = get_object_or_404(Event, pk=event_id)
     if request.method == 'POST':
@@ -37,17 +41,20 @@ def edit_event(request, event_id=None):
     return render(request, 'events/edit_event.html', {'form': form, 'event_id': event_id})
 
 
+@login_required
 def list_events(request):
     events = Event.objects.all()
     return render(request, 'events/list_events.html', {'events': events})
 
 
+@login_required
 def list_galleries(request, event_id=None):
     event = get_object_or_404(Event, pk=event_id)
     galleries = Gallery.objects.filter(event=event_id)
     return render(request, 'events/list_gallery.html', {'galleries': galleries, 'event': event})
 
 
+@login_required
 def create_gallery(request, event_id=None):
     event = get_object_or_404(Event, pk=event_id)
     error_message = ''
@@ -69,17 +76,20 @@ def create_gallery(request, event_id=None):
     return render(request, 'events/create_gallery.html', {'event': event, 'error_message': error_message, 'name': name})
 
 
+@login_required
 def list_gallery_images(request, gallery_id=None):
     gallery = get_object_or_404(Gallery, pk=gallery_id)
     gallery_images = GalleryImage.objects.filter(gallery=gallery)
     return render(request, 'events/list_gallery_images.html', {'gallery': gallery, 'gallery_images': gallery_images})
 
 
+@login_required
 def upload_gallery_image(request, gallery_id=None):
     gallery = get_object_or_404(Gallery, pk=gallery_id)
     return render(request, 'events/upload_gallery_images.html', {'gallery': gallery})
 
 
+@login_required
 @csrf_exempt
 def upload_gallery_image_process(request, gallery_id=None):
     gallery = get_object_or_404(Gallery, pk=gallery_id)
@@ -123,6 +133,7 @@ def selfie_register(request, event_id=None):
                     selfie_temp_data.selfie_embedding = ",".join(map(str, face_embedding))
                     selfie_temp_data.save()
                     selfie_registration = UserSelfieRegistration.objects.get(pk=pk)
+                    send_welcome_message(f'91{selfie_registration.mobile_number}', selfie_registration.user_name, event_name=str(event))
                     return render(request, 'events/selfie_register_result.html', {'event': event, 'selfie_registration': selfie_registration})
 
         return JsonResponse({'error': 'Invalid form data'})
